@@ -19,7 +19,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all
+          args: --all --all-features
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -57,6 +57,6 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all --no-fail-fast -- --nocapture
+          args: --all --all-features --no-fail-fast -- --nocapture
         env:
           TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres"
