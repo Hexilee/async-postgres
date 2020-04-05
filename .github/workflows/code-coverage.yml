@@ -36,6 +36,8 @@ jobs:
         with:
           toolchain: nightly
           override: true
+      - name: Add environment variables
+        run: echo "postgresql://postgres/postgres?user=postgres&password=postgres" >> .env
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:

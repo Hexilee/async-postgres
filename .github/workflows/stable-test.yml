@@ -7,7 +7,7 @@ jobs:
       matrix:
         rust:
           - stable
-          - 1.39.0
+          - 1.40.0
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -45,11 +45,10 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
+      - name: Add environment variables
+        run: echo "postgresql://postgres/postgres?user=postgres&password=postgres" >> .env
       - name: Run all tests
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --all --no-fail-fast -- --nocapture
-        env:
-          TEST_URL: "postgresql://postgres/postgres?user=postgres&password=postgres"
-        
