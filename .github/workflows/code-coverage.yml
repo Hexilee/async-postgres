@@ -41,7 +41,7 @@ jobs:
           toolchain: nightly
           override: true
       - name: Load test data
-        run: psql -U postgres -d postgres < tests/load-data.sql
+        run: psql -h localhost -U postgres -d postgres < tests/load-data.sql
         env:
           PGPASSWORD: "postgres"
       - name: Run cargo-tarpaulin
