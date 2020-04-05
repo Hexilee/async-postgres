@@ -14,3 +14,14 @@
   </p>
 </div>
 <br>
+
+This crate is an out-of-the-box wrapper of [tokio-postgres](https://crates.io/crates/tokio-postgres).
+
+### Pros
+
+- runtime-independent, can be used on any async runtime.
+- build-in tls support, based on [tokio-rustls](https://github.com/quininer/tokio-rustls).
+
+### Performance
+
+### Develop
