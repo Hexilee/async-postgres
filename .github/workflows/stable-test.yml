@@ -45,10 +45,10 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
-      - name: Add environment variables
-        run: echo "postgresql://postgres/postgres?user=postgres&password=postgres" >> .env
       - name: Run all tests
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --all --no-fail-fast -- --nocapture
+        env:
+          TEST_URL: "postgresql://postgres/postgres?user=postgres&password=postgres"
