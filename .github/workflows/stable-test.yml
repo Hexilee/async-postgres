@@ -50,7 +50,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: List workspace
-        run: ls -lh /github/workspace
+        run: ls -lh .
       - name: Load test data
         run: psql -U postgres -d postgres < /github/workspace/tests/load-data.sql
         env:
