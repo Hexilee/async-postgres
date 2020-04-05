@@ -1,0 +1,37 @@
+on: [push, pull_request]
+name: Benchmark
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - name: Install psql
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Load test data
+        run: psql -h localhost -U postgres -d postgres < tests/load-data.sql
+        env:
+          PGPASSWORD: "postgres"
+      - name: Benchmark
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release --test benchmark -- --nocapture
+        env:
+          TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres"
