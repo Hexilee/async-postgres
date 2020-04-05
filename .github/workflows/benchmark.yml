@@ -1,7 +1,7 @@
 on: [push, pull_request]
 name: Benchmark
 jobs:
-  test:
+  benchmark:
     runs-on: ubuntu-latest
     services:
       postgres:
