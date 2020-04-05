@@ -39,11 +39,16 @@ jobs:
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
+      - name: get path
+        run: |
+          pwd
+          ls -lh
+          ls -lh tests
       - name: load test data
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-          PGPASSWORD="postgres" psql -U postgres -d postgres < tests/load-data.sql
+          PGPASSWORD="postgres" psql -U postgres -d postgres < ./tests/load-data.sql
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:

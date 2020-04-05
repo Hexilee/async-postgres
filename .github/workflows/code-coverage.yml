@@ -35,7 +35,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-          PGPASSWORD="postgres" psql -U postgres -d postgres < tests/load-data.sql
+          PGPASSWORD="postgres" psql -U postgres -d postgres < ./tests/load-data.sql
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
