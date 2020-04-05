@@ -42,7 +42,7 @@ jobs:
           version: '0.11.0'
           args: --out Xml --all
         env:
-          TEST_URL: "postgresql://postgres/postgres?user=postgres&password=postgres"
+          TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres"
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1.0.2
         with:
