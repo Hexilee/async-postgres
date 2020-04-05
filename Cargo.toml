@@ -1,0 +1,28 @@
+[package]
+name = "async-postgres"
+version = "0.5.0"
+authors = ["Hexilee <i@hexilee.me>"]
+edition = "2018"
+license = "MIT"
+description = "A runtime-independent, asynchronous PostgreSQL client."
+repository = "https://github.com/Hexilee/async-postgres"
+readme = "../README.md"
+keywords = ["database", "postgres", "postgresql", "sql", "async"]
+categories = ["database"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bytes = "0.5.3"
+tokio-postgres = { version = "0.5.2", default-features = false }
+tokio = "0.2.14"
+async-std = "1.5"
+futures = { version = "0.3.4", default-features = false }
+tokio-rustls = { version = "0.13.0", features = ["unstable"] }
+webpki = "0.21.2"
+
+[dev-dependencies]
+async-std = { version = "1.5", features = ["attributes"] }
+dotenv_codegen = "0.15.0"
+tokio = { version = "0.2.14", features = ["full"] }
+tokio-postgres = "0.5.2"
