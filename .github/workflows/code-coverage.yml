@@ -16,9 +16,20 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all --all-features
+          args: --all
   cover:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
@@ -29,7 +40,7 @@ jobs:
         uses: actions-rs/tarpaulin@v0.1
         with:
           version: '0.11.0'
-          args: --out Xml --all --all-features
+          args: --out Xml --all
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1.0.2
         with:
