@@ -31,16 +31,19 @@ jobs:
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - name: load test data
+      - name: Install psql
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-          PGPASSWORD="postgres" psql -U postgres -d postgres < /github/workspace/tests/load-data.sql
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
+      - name: load test data
+        run: psql -U postgres -d postgres < /github/workspace/tests/load-data.sql
+        env:
+          PGPASSWORD: "postgres"
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
