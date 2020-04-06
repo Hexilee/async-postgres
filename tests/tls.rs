@@ -8,7 +8,7 @@ const TEST_TLS_URL: &str = env!("TEST_TLS_URL");
 
 #[async_std::test]
 async fn query() -> Result<(), Box<dyn Error>> {
-    let mut cert_buf = io::BufReader::new(fs::File::open("cert/server.crt")?);
+    let mut cert_buf = io::BufReader::new(fs::File::open("tests/cert/server.crt")?);
     let mut tls_config = TlsConfig::new();
     tls_config.root_store.add_pem_file(&mut cert_buf).unwrap();
     let (client, conn) =
