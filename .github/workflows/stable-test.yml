@@ -61,4 +61,4 @@ jobs:
           command: test
           args: --all --all-features --no-fail-fast -- --nocapture
         env:
-          TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres"
+          TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres?sslmode=disable"
