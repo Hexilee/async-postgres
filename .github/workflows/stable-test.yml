@@ -29,13 +29,23 @@ jobs:
           - 1.40.0
     services:
       postgres:
-        image: nimbustech/postgres-ssl:9.5
+        image: postgres:10.8
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      postgres-tls:
+        image: nimbustech/postgres-ssl:9.5
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5433:5432
         volumes:
           - tests/cert:/var/ssl
         # needed because the postgres container does not provide a healthcheck
@@ -61,4 +71,5 @@ jobs:
           command: test
           args: --all --all-features --no-fail-fast -- --nocapture
         env:
-          TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres?sslmode=disable"
+          TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres"
+          TEST_TLS_URL: "postgresql://localhost:5433/postgres?user=postgres&password=postgres?sslmode=verify-ca"
