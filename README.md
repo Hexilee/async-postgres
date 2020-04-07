@@ -15,13 +15,68 @@
 </div>
 <br>
 
-This crate is an out-of-the-box wrapper of [tokio-postgres](https://crates.io/crates/tokio-postgres).
+This crate is a wrapper of [tokio-postgres](https://crates.io/crates/tokio-postgres).
 
 ### Pros
 
-- runtime-independent, can be used on any async runtime.
-- build-in tls support, based on [tokio-rustls](https://github.com/quininer/tokio-rustls).
+Runtime-independent, can be used on any async runtime.
+
+### Usage
+
+Almost the same with tokio-postgres.
+
+- TCP or UDS
+
+```rust
+use async_postgres::connect;
+use std::error::Error;
+use async_std::task::spawn;
+
+async fn play() -> Result<(), Box<dyn Error>> {
+    let url = "host=localhost user=postgres";
+    let (client, conn) = connect(url.parse()?).await?;
+    spawn(conn);
+    let row = client.query_one("SELECT * FROM user WHERE id=$1", &[&0]).await?;
+    let value: &str = row.get(0);
+    println!("value: {}", value);
+    Ok(())
+}
+```
+
+- TLS
+
+```rust
+use async_postgres::connect_tls;
+use native_tls::{Certificate, TlsConnector};
+use postgres_native_tls::MakeTlsConnector;
+use std::fs;
+use std::error::Error;
+use async_std::task::spawn;
+
+async fn play() -> Result<(), Box<dyn Error>> {
+    let cert = fs::read("database_cert.pem")?;
+    let cert = Certificate::from_pem(&cert)?;
+    let connector = TlsConnector::builder()
+        .add_root_certificate(cert)
+        .build()?;
+    let connector = MakeTlsConnector::new(connector);
+    let url = "host=localhost user=postgres sslmode=require";
+    let (client, conn) = connect_tls(url.parse()?, connector).await?;
+    spawn(conn);
+    let row = client.query_one("SELECT * FROM user WHERE id=$1", &[&0]).await?;
+    let value: &str = row.get(0);
+    println!("value: {}", value);
+    Ok(())
+}
+```
 
 ### Performance
 
+Almost the same with tokio-postgres, 
+you can see a live benchmark [here](https://github.com/Hexilee/async-postgres/actions?query=workflow%3ABenchmark).
+
 ### Develop
+
+Run tests need a running postgres server and environment variables:
+- `TCP_URL="postgresql:///<db>?host=<tcp host>&port=<port>&user=<user>&password=<passwd>"`
+- `UDS_URL="postgresql:///<db>?host=<postgres uds dir>&port=<port>&user=<user>&password=<passwd>"`

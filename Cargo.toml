@@ -10,6 +10,10 @@ readme = "../README.md"
 keywords = ["database", "postgres", "postgresql", "sql", "async"]
 categories = ["database"]
 
+[package.metadata.docs.rs]
+features = ["docs"]
+rustdoc-args = ["--cfg", "feature=\"docs\""]
+
 [badges]
 codecov = { repository = "Hexilee/async-postgres" }
 
@@ -32,6 +36,7 @@ postgres-native-tls = "0.3.0"
 native-tls = "0.2.4"
 
 [features]
+docs = ["all-types"]
 all-types = [
     "with-bit-vec-0_6",
     "with-chrono-0_4",

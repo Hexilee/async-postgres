@@ -1,11 +1,12 @@
-//! A runtime-independent, asynchronous PostgreSQL client.
-
-#![warn(missing_docs)]
+#![cfg_attr(feature = "docs", feature(external_doc))]
+#![cfg_attr(feature = "docs", doc(include = "../README.md"))]
+#![cfg_attr(feature = "docs", warn(missing_docs))]
 
 #[doc(inline)]
 pub use connect::connect_tls;
 #[doc(inline)]
 pub use socket::Socket;
+#[doc(no_inline)]
 pub use tokio_postgres::*;
 
 use std::io;
@@ -16,7 +17,6 @@ use tokio_postgres::{Client, Connection};
 ///
 /// ```rust
 /// use async_postgres::connect;
-///
 /// use std::error::Error;
 /// use async_std::task::spawn;
 ///

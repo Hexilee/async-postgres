@@ -99,7 +99,7 @@ async fn connect_socket(
         Host::Tcp(tcp) => {
             let fut = TcpStream::connect((tcp.as_str(), port));
             let socket = timeout(dur, fut).await?;
-            // socket.set_nodelay(true)?;
+            socket.set_nodelay(true)?;
             Ok(socket.into())
         }
     }
