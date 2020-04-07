@@ -77,6 +77,6 @@ you can see a live benchmark [here](https://github.com/Hexilee/async-postgres/ac
 
 ### Develop
 
-Run tests need a running postgres server and environment variables:
+Running tests needs a postgres server and environment variables:
 - `TCP_URL="postgresql:///<db>?host=<tcp host>&port=<port>&user=<user>&password=<passwd>"`
 - `UDS_URL="postgresql:///<db>?host=<postgres uds dir>&port=<port>&user=<user>&password=<passwd>"`
