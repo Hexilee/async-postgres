@@ -36,6 +36,8 @@ jobs:
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
+        volumes:
+          - tests/sock:/var/run/postgresql
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
@@ -59,4 +61,5 @@ jobs:
           command: test
           args: --all --all-features --no-fail-fast -- --nocapture
         env:
-          TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres"
+          TCP_URL: "postgresql:///postgres?host=localhost&user=postgres&password=postgres"
+          UDS_URL: "postgresql:///postgres?host=tests/sock&user=postgres&password=postgres"
