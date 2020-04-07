@@ -1,3 +1,6 @@
+#[cfg(unix)]
+use async_std::os::unix::net::UnixStream;
+
 use async_std::io::{self, Read, Write};
 use async_std::net::TcpStream;
 use std::mem::MaybeUninit;
@@ -6,11 +9,25 @@ use std::task::{Context, Poll};
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_postgres::config::{Config, Host};
 
-/// Default port of postgres.
+/// Default socket port of postgres.
 const DEFAULT_PORT: u16 = 5432;
 
-/// A wrapper for async_std::net::TcpStream, implementing tokio::io::{AsyncRead, AsyncWrite}.
-pub struct AsyncStream(TcpStream);
+/// A alias for 'static + Unpin + Send + Read + Write
+pub trait AsyncReadWriter: 'static + Unpin + Send + Read + Write {}
+
+impl<T> AsyncReadWriter for T where T: 'static + Unpin + Send + Read + Write {}
+
+/// A adaptor between futures::io::{AsyncRead, AsyncWrite} and tokio::io::{AsyncRead, AsyncWrite}.
+pub struct AsyncStream(Box<dyn AsyncReadWriter>);
+
+impl<T> From<T> for AsyncStream
+where
+    T: AsyncReadWriter,
+{
+    fn from(stream: T) -> Self {
+        Self(Box::new(stream))
+    }
+}
 
 impl AsyncRead for AsyncStream {
     #[inline]
@@ -56,39 +73,31 @@ impl AsyncWrite for AsyncStream {
 }
 
 /// Establish connection to postgres server by AsyncStream.
+///
+///
 #[inline]
 pub async fn connect_stream(config: &Config) -> io::Result<AsyncStream> {
-    let host = try_tcp_host(&config)?;
-    let port = config
-        .get_ports()
-        .iter()
-        .copied()
-        .next()
-        .unwrap_or(DEFAULT_PORT);
-
-    let tcp_stream = TcpStream::connect((host, port)).await?;
-    Ok(AsyncStream(tcp_stream))
-}
-
-/// Try to get TCP hostname from postgres config.
-#[inline]
-fn try_tcp_host(config: &Config) -> io::Result<&str> {
-    match config
-        .get_hosts()
-        .iter()
-        .filter_map(|host| {
-            if let Host::Tcp(value) = host {
-                Some(value)
-            } else {
-                None
+    let mut error = io::Error::new(io::ErrorKind::Other, "host missing");
+    let mut ports = config.get_ports().iter().cloned();
+    for host in config.get_hosts() {
+        let result = match host {
+            #[cfg(unix)]
+            Host::Unix(path) => UnixStream::connect(path).await.map(Into::into),
+            Host::Tcp(tcp) => {
+                let port = ports.next().unwrap_or(DEFAULT_PORT);
+                TcpStream::connect((tcp.as_str(), port))
+                    .await
+                    .map(Into::into)
             }
-        })
-        .next()
-    {
-        Some(host) => Ok(host),
-        None => Err(io::Error::new(
-            io::ErrorKind::Other,
-            "At least one tcp hostname is required",
-        )),
+            #[cfg(not(unix))]
+            Host::Unix(_) => {
+                io::Error::new(io::ErrorKind::Other, "unix domain socket is unsupported")
+            }
+        };
+        match result {
+            Err(err) => error = err,
+            stream => return stream,
+        }
     }
+    Err(error)
 }

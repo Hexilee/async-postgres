@@ -62,8 +62,39 @@ where
     T: TlsConnect<AsyncStream>,
 {
     let stream = connect_stream(&config).await?;
+    connect_raw(stream, config, tls).await
+}
+
+/// Connect to postgres server with a tls connector.
+///
+/// ```rust
+/// use async_postgres::connect;
+///
+/// use std::error::Error;
+/// use async_std::task::spawn;
+///
+/// async fn play() -> Result<(), Box<dyn Error>> {
+///     let url = "host=localhost user=postgres";
+///     let (client, conn) = connect(url.parse()?).await?;
+///     spawn(conn);
+///     let row = client.query_one("SELECT * FROM user WHERE id=$1", &[&0]).await?;
+///     let value: &str = row.get(0);
+///     println!("value: {}", value);
+///     Ok(())
+/// }
+/// ```
+#[inline]
+pub async fn connect_raw<S, T>(
+    stream: S,
+    config: Config,
+    tls: T,
+) -> io::Result<(Client, Connection<AsyncStream, T::Stream>)>
+where
+    S: Into<AsyncStream>,
+    T: TlsConnect<AsyncStream>,
+{
     config
-        .connect_raw(stream, tls)
+        .connect_raw(stream.into(), tls)
         .await
         .map_err(|err| io::Error::new(io::ErrorKind::Other, err))
 }
