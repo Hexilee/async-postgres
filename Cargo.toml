@@ -36,7 +36,8 @@ postgres-native-tls = "0.3.0"
 native-tls = "0.2.4"
 
 [features]
-docs = ["all-types"]
+docs = ["full"]
+full = ["all-types"]
 all-types = [
     "with-bit-vec-0_6",
     "with-chrono-0_4",

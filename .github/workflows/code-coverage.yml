@@ -16,7 +16,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all --all-features
+          args: --all --features "full"
   cover:
     runs-on: ubuntu-latest
     services:
@@ -50,7 +50,7 @@ jobs:
         uses: actions-rs/tarpaulin@v0.1
         with:
           version: '0.11.0'
-          args: --out Xml --all --all-features
+          args: --out Xml --all --features "full"
         env:
           TCP_URL: "postgresql:///postgres?host=localhost&user=postgres&password=postgres"
           UDS_URL: "postgresql:///postgres?host=/var/run&user=postgres&password=postgres"
