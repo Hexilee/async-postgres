@@ -9,7 +9,7 @@ const TEST_URL: &str = env!("TEST_URL");
 #[async_std::test]
 async fn async_runtime() -> Result<(), Box<dyn Error>> {
     use async_std::task::spawn;
-    let (client, conn) = async_postgres::connect(&TEST_URL.parse()?).await?;
+    let (client, conn) = async_postgres::connect(TEST_URL.parse()?).await?;
     spawn(conn);
     let shared_client = Arc::new(client);
     let stmt = shared_client
@@ -43,7 +43,7 @@ async fn async_runtime() -> Result<(), Box<dyn Error>> {
 #[tokio::test]
 async fn tokio_runtime() -> Result<(), Box<dyn Error>> {
     use tokio::spawn;
-    let (client, conn) = async_postgres::connect(&TEST_URL.parse()?).await?;
+    let (client, conn) = async_postgres::connect(TEST_URL.parse()?).await?;
     spawn(conn);
     let shared_client = Arc::new(client);
     let stmt = shared_client

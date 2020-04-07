@@ -30,18 +30,6 @@ jobs:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      postgres-tls:
-        image: nimbustech/postgres-ssl:9.5
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5433:5432
-        volumes:
-          - tests/cert:/var/ssl
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Install psql
         run: |
@@ -63,7 +51,6 @@ jobs:
           args: --out Xml --all --all-features
         env:
           TEST_URL: "postgresql://localhost/postgres?user=postgres&password=postgres"
-          TEST_TLS_URL: "postgresql://localhost:5433/postgres?user=postgres&password=postgres?sslmode=verify-ca"
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1.0.2
         with:
