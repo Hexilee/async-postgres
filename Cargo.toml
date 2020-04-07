@@ -28,6 +28,8 @@ futures = { version = "0.3.4", default-features = false }
 async-std = { version = "1.5", features = ["attributes"] }
 tokio = { version = "0.2.14", features = ["full"] }
 tokio-postgres = "0.5.3"
+postgres-native-tls = "0.3.0"
+native-tls = "0.2.4"
 
 [features]
 all-types = [

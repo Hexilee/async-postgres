@@ -2,7 +2,9 @@
 
 #![warn(missing_docs)]
 
+#[doc(inline)]
 pub use connect::connect_tls;
+#[doc(inline)]
 pub use socket::Socket;
 pub use tokio_postgres::*;
 

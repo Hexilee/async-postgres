@@ -16,14 +16,22 @@ const DEFAULT_PORT: u16 = 5432;
 /// Connect to postgres server with a tls connector.
 ///
 /// ```rust
-/// use async_postgres::connect;
-///
+/// use async_postgres::connect_tls;
+/// use native_tls::{Certificate, TlsConnector};
+/// use postgres_native_tls::MakeTlsConnector;
+/// use std::fs;
 /// use std::error::Error;
 /// use async_std::task::spawn;
 ///
 /// async fn play() -> Result<(), Box<dyn Error>> {
-///     let url = "host=localhost user=postgres";
-///     let (client, conn) = connect(url.parse()?).await?;
+///     let cert = fs::read("database_cert.pem")?;
+///     let cert = Certificate::from_pem(&cert)?;
+///     let connector = TlsConnector::builder()
+///         .add_root_certificate(cert)
+///         .build()?;
+///     let connector = MakeTlsConnector::new(connector);
+///     let url = "host=localhost user=postgres sslmode=require";
+///     let (client, conn) = connect_tls(url.parse()?, connector).await?;
 ///     spawn(conn);
 ///     let row = client.query_one("SELECT * FROM user WHERE id=$1", &[&0]).await?;
 ///     let value: &str = row.get(0);
@@ -91,7 +99,7 @@ async fn connect_socket(
         Host::Tcp(tcp) => {
             let fut = TcpStream::connect((tcp.as_str(), port));
             let socket = timeout(dur, fut).await?;
-            socket.set_nodelay(true)?;
+            // socket.set_nodelay(true)?;
             Ok(socket.into())
         }
     }

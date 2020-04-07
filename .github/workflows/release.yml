@@ -4,7 +4,7 @@ on:
     branches:
       - release
     paths:
-      - '**/Cargo.toml'
+      - 'Cargo.toml'
       - '.github/workflows/release.yml'
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
         package:
           - name: async-postgres
             registryName: async-postgres
-            path: async-postgres
+            path: .
             publishPath: /target/package
     steps:
       - uses: actions/checkout@v2
