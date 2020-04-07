@@ -1,31 +1,57 @@
 use futures::future::try_join_all;
-use std::env;
+use std::env::var;
 use std::error::Error;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
-const TEST_URL: &str = env!("TEST_URL");
+const TASKS: u128 = 1000;
+const QUERIES: u128 = 100;
 
-#[async_std::test]
-async fn async_runtime() -> Result<(), Box<dyn Error>> {
+#[test]
+fn benchmark() -> Result<(), Box<dyn Error>> {
+    let queries = TASKS * QUERIES;
+    let tcp_url = var("TCP_URL")?;
+    let uds_url = var("UDS_URL")?;
+    let mut tokio_rr = tokio::runtime::Runtime::new()?;
+
+    println!("Benchmark concurrency({}), queries({}):", TASKS, queries);
+    println!("  - async-postgres on async-std runtime:");
+    let elapsed = async_std::task::block_on(async_runtime(&tcp_url))?;
+    println!("      - tcp: {} us/q", elapsed.as_micros() / queries);
+    let elapsed = async_std::task::block_on(async_runtime(&uds_url))?;
+    println!("      - uds: {} us/q", elapsed.as_micros() / queries);
+    println!("  - async-postgres on tokio runtime:");
+    let elapsed = tokio_rr.block_on(tokio_runtime(&tcp_url))?;
+    println!("      - tcp: {} us/q", elapsed.as_micros() / queries);
+    let elapsed = tokio_rr.block_on(tokio_runtime(&uds_url))?;
+    println!("      - uds: {} us/q", elapsed.as_micros() / queries);
+    println!("  - tokio_postgres on tokio runtime:");
+    let elapsed = tokio_rr.block_on(tokio_postgres(&tcp_url))?;
+    println!("      - tcp: {} us/q", elapsed.as_micros() / queries);
+    // let elapsed = tokio_rr.block_on(tokio_postgres(&uds_url))?;
+    // println!("      - uds: {} us/q", elapsed.as_micros() / queries);
+    Ok(())
+}
+
+async fn async_runtime(url: &str) -> Result<Duration, Box<dyn Error>> {
     use async_std::task::spawn;
-    let (client, conn) = async_postgres::connect(TEST_URL.parse()?).await?;
+    let (client, conn) = async_postgres::connect(url.parse()?).await?;
     spawn(conn);
     let shared_client = Arc::new(client);
     let stmt = shared_client
         .prepare("SELECT * FROM posts WHERE id=$1")
         .await?;
     let start = Instant::now();
-    let tasks = (0..1000).map(|_| {
+    let tasks = (0..TASKS).map(|_| {
         let client = shared_client.clone();
         let stmt = stmt.clone();
         spawn(async move {
-            let queries = (0..100).map(|_| client.query_one(&stmt, &[&1i32]));
+            let queries = (0..QUERIES).map(|_| client.query_one(&stmt, &[&1i32]));
             try_join_all(queries).await
         })
     });
     let results = try_join_all(tasks).await?;
-    let avg_elapsed = start.elapsed().as_micros() / 100_000;
+    let elapsed = start.elapsed();
     // check
     for rows in results {
         for row in rows {
@@ -36,14 +62,12 @@ async fn async_runtime() -> Result<(), Box<dyn Error>> {
             );
         }
     }
-    println!("1000 concurrency; {} us/q", avg_elapsed);
-    Ok(())
+    Ok(elapsed)
 }
 
-#[tokio::test]
-async fn tokio_runtime() -> Result<(), Box<dyn Error>> {
+async fn tokio_runtime(url: &str) -> Result<Duration, Box<dyn Error>> {
     use tokio::spawn;
-    let (client, conn) = async_postgres::connect(TEST_URL.parse()?).await?;
+    let (client, conn) = async_postgres::connect(url.parse()?).await?;
     spawn(conn);
     let shared_client = Arc::new(client);
     let stmt = shared_client
@@ -59,7 +83,7 @@ async fn tokio_runtime() -> Result<(), Box<dyn Error>> {
         })
     });
     let results = try_join_all(tasks).await?;
-    let avg_elapsed = start.elapsed().as_micros() / 100_000;
+    let elapsed = start.elapsed();
     // check
     for rows in results {
         for row in rows? {
@@ -70,15 +94,13 @@ async fn tokio_runtime() -> Result<(), Box<dyn Error>> {
             );
         }
     }
-    println!("1000 concurrency; {} us/q", avg_elapsed);
-    Ok(())
+    Ok(elapsed)
 }
 
-#[tokio::test]
-async fn tokio_postgres() -> Result<(), Box<dyn Error>> {
+async fn tokio_postgres(url: &str) -> Result<Duration, Box<dyn Error>> {
     use tokio::spawn;
     use tokio_postgres::NoTls;
-    let (client, conn) = tokio_postgres::connect(&TEST_URL, NoTls).await?;
+    let (client, conn) = tokio_postgres::connect(url, NoTls).await?;
     spawn(conn);
     let shared_client = Arc::new(client);
     let stmt = shared_client
@@ -96,7 +118,7 @@ async fn tokio_postgres() -> Result<(), Box<dyn Error>> {
         })
         .collect::<Vec<_>>();
     let results = try_join_all(tasks).await?;
-    let avg_elapsed = start.elapsed().as_micros() / 100_000;
+    let elapsed = start.elapsed();
     // check
     for rows in results {
         for row in rows? {
@@ -107,6 +129,5 @@ async fn tokio_postgres() -> Result<(), Box<dyn Error>> {
             );
         }
     }
-    println!("1000 concurrency; {} us/q", avg_elapsed);
-    Ok(())
+    Ok(elapsed)
 }
