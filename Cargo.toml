@@ -6,7 +6,7 @@ edition = "2018"
 license = "MIT"
 description = "A runtime-independent, asynchronous PostgreSQL client."
 repository = "https://github.com/Hexilee/async-postgres"
-readme = "../README.md"
+readme = "README.md"
 keywords = ["database", "postgres", "postgresql", "sql", "async"]
 categories = ["database"]
 
