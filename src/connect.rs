@@ -110,7 +110,7 @@ where
     F: Future<Output = io::Result<T>>,
 {
     if let Some(timeout) = dur {
-        io::timeout(timeout.clone(), fut).await
+        io::timeout(*timeout, fut).await
     } else {
         fut.await
     }
