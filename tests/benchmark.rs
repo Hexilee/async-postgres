@@ -28,8 +28,8 @@ fn benchmark() -> Result<(), Box<dyn Error>> {
     println!("  - tokio_postgres on tokio runtime:");
     let elapsed = tokio_rr.block_on(tokio_postgres(&tcp_url))?;
     println!("      - tcp: {} us/q", elapsed.as_micros() / queries);
-    // let elapsed = tokio_rr.block_on(tokio_postgres(&uds_url))?;
-    // println!("      - uds: {} us/q", elapsed.as_micros() / queries);
+    let elapsed = tokio_rr.block_on(tokio_postgres(&uds_url))?;
+    println!("      - uds: {} us/q", elapsed.as_micros() / queries);
     Ok(())
 }
 

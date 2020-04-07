@@ -2,11 +2,11 @@
 
 #![warn(missing_docs)]
 
-pub use stream::AsyncStream;
+pub use socket::Socket;
 pub use tokio_postgres::*;
 
+use socket::connect_socket;
 use std::io;
-use stream::connect_stream;
 use tokio_postgres::tls::{NoTls, NoTlsStream, TlsConnect};
 use tokio_postgres::{Client, Connection};
 
@@ -31,7 +31,7 @@ use tokio_postgres::{Client, Connection};
 #[inline]
 pub async fn connect(
     config: Config,
-) -> io::Result<(Client, Connection<AsyncStream, NoTlsStream>)> {
+) -> io::Result<(Client, Connection<Socket, NoTlsStream>)> {
     connect_tls(config, NoTls).await
 }
 
@@ -57,11 +57,11 @@ pub async fn connect(
 pub async fn connect_tls<T>(
     config: Config,
     tls: T,
-) -> io::Result<(Client, Connection<AsyncStream, T::Stream>)>
+) -> io::Result<(Client, Connection<Socket, T::Stream>)>
 where
-    T: TlsConnect<AsyncStream>,
+    T: TlsConnect<Socket>,
 {
-    let stream = connect_stream(&config).await?;
+    let stream = connect_socket(&config).await?;
     connect_raw(stream, config, tls).await
 }
 
@@ -88,10 +88,10 @@ pub async fn connect_raw<S, T>(
     stream: S,
     config: Config,
     tls: T,
-) -> io::Result<(Client, Connection<AsyncStream, T::Stream>)>
+) -> io::Result<(Client, Connection<Socket, T::Stream>)>
 where
-    S: Into<AsyncStream>,
-    T: TlsConnect<AsyncStream>,
+    S: Into<Socket>,
+    T: TlsConnect<Socket>,
 {
     config
         .connect_raw(stream.into(), tls)
@@ -99,4 +99,4 @@ where
         .map_err(|err| io::Error::new(io::ErrorKind::Other, err))
 }
 
-mod stream;
+mod socket;

@@ -18,9 +18,9 @@ pub trait AsyncReadWriter: 'static + Unpin + Send + Read + Write {}
 impl<T> AsyncReadWriter for T where T: 'static + Unpin + Send + Read + Write {}
 
 /// A adaptor between futures::io::{AsyncRead, AsyncWrite} and tokio::io::{AsyncRead, AsyncWrite}.
-pub struct AsyncStream(Box<dyn AsyncReadWriter>);
+pub struct Socket(Box<dyn AsyncReadWriter>);
 
-impl<T> From<T> for AsyncStream
+impl<T> From<T> for Socket
 where
     T: AsyncReadWriter,
 {
@@ -29,7 +29,7 @@ where
     }
 }
 
-impl AsyncRead for AsyncStream {
+impl AsyncRead for Socket {
     #[inline]
     unsafe fn prepare_uninitialized_buffer(&self, _buf: &mut [MaybeUninit<u8>]) -> bool {
         false
@@ -45,7 +45,7 @@ impl AsyncRead for AsyncStream {
     }
 }
 
-impl AsyncWrite for AsyncStream {
+impl AsyncWrite for Socket {
     #[inline]
     fn poll_write(
         mut self: Pin<&mut Self>,
@@ -76,19 +76,20 @@ impl AsyncWrite for AsyncStream {
 ///
 ///
 #[inline]
-pub async fn connect_stream(config: &Config) -> io::Result<AsyncStream> {
+pub async fn connect_socket(config: &Config) -> io::Result<Socket> {
     let mut error = io::Error::new(io::ErrorKind::Other, "host missing");
     let mut ports = config.get_ports().iter().cloned();
     for host in config.get_hosts() {
+        let port = ports.next().unwrap_or(DEFAULT_PORT);
         let result = match host {
             #[cfg(unix)]
-            Host::Unix(path) => UnixStream::connect(path).await.map(Into::into),
-            Host::Tcp(tcp) => {
-                let port = ports.next().unwrap_or(DEFAULT_PORT);
-                TcpStream::connect((tcp.as_str(), port))
-                    .await
-                    .map(Into::into)
+            Host::Unix(path) => {
+                let sock = path.join(format!(".s.PGSQL.{}", port));
+                UnixStream::connect(sock).await.map(Into::into)
             }
+            Host::Tcp(tcp) => TcpStream::connect((tcp.as_str(), port))
+                .await
+                .map(Into::into),
             #[cfg(not(unix))]
             Host::Unix(_) => {
                 io::Error::new(io::ErrorKind::Other, "unix domain socket is unsupported")
