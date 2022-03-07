@@ -1,6 +1,6 @@
 [package]
 name = "async-postgres"
-version = "0.5.1"
+version = "0.7.0"
 authors = ["Hexilee <i@hexilee.me>"]
 edition = "2018"
 license = "MIT"
@@ -21,18 +21,18 @@ codecov = { repository = "Hexilee/async-postgres" }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-std = "1.10"
 bytes = "0.5"
-tokio-postgres = { version = "0.5", default-features = false }
-tokio = "0.2"
-async-std = "1.6"
+tokio = "1"
+tokio-postgres = { version = "0.7", default-features = false }
 futures = { version = "0.3", default-features = false }
 
 
 [dev-dependencies]
-async-std = { version = "1.6", features = ["attributes"] }
-tokio = { version = "0.2", features = ["full"] }
-tokio-postgres = "0.5"
-postgres-native-tls = "0.3"
+async-std = { version = "1.10", features = ["attributes"] }
+tokio = { version = "1", features = ["full"] }
+tokio-postgres = "0.7"
+postgres-native-tls = "0.5"
 native-tls = "0.2"
 
 [features]
@@ -42,7 +42,7 @@ all-types = [
     "with-bit-vec-0_6",
     "with-chrono-0_4",
     "with-eui48-0_4",
-    "with-geo-types-0_4",
+#    "with-geo-types-0_4",
     "with-serde_json-1",
     "with-uuid-0_8",
     "with-time-0_2"
@@ -50,7 +50,7 @@ all-types = [
 with-bit-vec-0_6 = ["tokio-postgres/with-bit-vec-0_6"]
 with-chrono-0_4 = ["tokio-postgres/with-chrono-0_4"]
 with-eui48-0_4 = ["tokio-postgres/with-eui48-0_4"]
-with-geo-types-0_4 = ["tokio-postgres/with-geo-types-0_4"]
+#with-geo-types-0_4 = ["tokio-postgres/with-geo-types-0_4"]
 with-serde_json-1 = ["tokio-postgres/with-serde_json-1"]
 with-uuid-0_8 = ["tokio-postgres/with-uuid-0_8"]
 with-time-0_2 = ["tokio-postgres/with-time-0_2"]
