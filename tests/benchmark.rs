@@ -12,7 +12,7 @@ fn benchmark() -> Result<(), Box<dyn Error>> {
     let queries = TASKS * QUERIES;
     let tcp_url = var("TCP_URL")?;
     let uds_url = var("UDS_URL")?;
-    let mut tokio_rr = tokio::runtime::Runtime::new()?;
+    let tokio_rr = tokio::runtime::Runtime::new()?;
 
     println!("Benchmark concurrency({}), queries({}):", TASKS, queries);
     println!("  - async-postgres on async-std runtime:");

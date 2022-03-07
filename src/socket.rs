@@ -27,8 +27,7 @@ impl AsyncRead for Socket {
         cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
-        let rawBuf = buf.filled_mut();
-        Pin::new(&mut self.0).poll_read(cx, rawBuf).map_ok(|_| ())
+        Pin::new(&mut self.0).poll_read(cx, buf.filled_mut()).map_ok(|_| ())
     }
 }
 
