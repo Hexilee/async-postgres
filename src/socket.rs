@@ -1,6 +1,7 @@
 use async_std::io::{self, Read, Write};
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use futures::ready;
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
 /// A alias for 'static + Unpin + Send + Read + Write
@@ -27,7 +28,9 @@ impl AsyncRead for Socket {
         cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
-        Pin::new(&mut self.0).poll_read(cx, buf.filled_mut()).map_ok(|_| ())
+        let read_size = ready!(Pin::new(&mut self.0).poll_read(cx, buf.initialize_unfilled()))?;
+        buf.advance(read_size);
+        Poll::Ready(Ok(()))
     }
 }
 
