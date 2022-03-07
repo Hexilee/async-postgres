@@ -1,8 +1,8 @@
 use async_std::io::{self, Read, Write};
-use std::mem::MaybeUninit;
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use tokio::io::{AsyncRead, AsyncWrite};
+use futures::ready;
+use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
 /// A alias for 'static + Unpin + Send + Read + Write
 pub trait AsyncReadWriter: 'static + Unpin + Send + Read + Write {}
@@ -23,17 +23,14 @@ where
 
 impl AsyncRead for Socket {
     #[inline]
-    unsafe fn prepare_uninitialized_buffer(&self, _buf: &mut [MaybeUninit<u8>]) -> bool {
-        false
-    }
-
-    #[inline]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-        buf: &mut [u8],
-    ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.0).poll_read(cx, buf)
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<io::Result<()>> {
+        let read_size = ready!(Pin::new(&mut self.0).poll_read(cx, buf.initialize_unfilled()))?;
+        buf.advance(read_size);
+        Poll::Ready(Ok(()))
     }
 }
 
